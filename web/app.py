@@ -93,7 +93,7 @@ def main():
             mode=WebRtcMode.SENDRECV,
              video_processor_factory=VideoProcessor,
             rtc_configuration={  # Add this line
-                "iceServers": [{"urls": ["stun:stun.l.google.com:19302","stun:stun2.l.google.com:19305"]}]
+                "iceServers": [{"urls": ["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302","stun:stun4.l.google.com:19302","stun:stun2.l.google.com:19302","stun:stun3.l.google.com:19302","stun:stun2.l.google.com:19305"]}]
             },
             media_stream_constraints={"video": True, "audio": False},
         )
