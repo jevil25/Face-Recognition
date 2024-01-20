@@ -113,8 +113,9 @@ def main():
                                 timeout=1.0 
                             ) 
                         except queue.Empty: 
-                            result = None 
-                        labels_placeholder.markdown('<h3>Predicted Emotion: '+ result +'<h3>', unsafe_allow_html=True) 
+                            result = None
+                        if result is not None: 
+                            labels_placeholder.markdown('<h3>Predicted Emotion: '+ result +'<h3>', unsafe_allow_html=True) 
                     else: 
                         break 
 
