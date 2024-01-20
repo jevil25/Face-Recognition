@@ -92,9 +92,6 @@ def main():
 
             counter += 1
             time.sleep(0.1)
-            # Break the loop if 'q' is pressed
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
 
         # Release the webcam
         cap.release()
