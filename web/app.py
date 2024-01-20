@@ -76,6 +76,8 @@ def main():
         counter = 0
         while True:
             ret, frame = cap.read()
+            if not ret:
+                continue
             # Update the image in the placeholder
             image_placeholder.image(frame, channels="BGR", use_column_width=True)
             # Convert the frame to numpy array
