@@ -93,9 +93,9 @@ def main():
             mode=WebRtcMode.SENDRECV,
              video_processor_factory=VideoProcessor,
             rtc_configuration={  # Add this line
-                "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+                "iceServers": [{"urls": ["stun:stun.l.google.com:19302","stun:stun2.l.google.com:19305"]}]
             },
-            media_stream_constraints={"video": True, "audio": True},
+            media_stream_constraints={"video": True, "audio": False},
         )
         st.text("Please note emotion is predicted every second.")
         if st.checkbox("Show the detected labels", value=True):
@@ -106,7 +106,7 @@ def main():
                 # Then the rendered video frames and the labels displayed here 
                 # are not strictly synchronized. 
                 while True: 
-                    if webrtc_ctx.video_processor.result_queue: 
+                    if webrtc_ctx.video_processor: 
                         try: 
                             print(webrtc_ctx.video_processor.result_queue.qsize())
                             result = webrtc_ctx.video_processor.result_queue.get( 
