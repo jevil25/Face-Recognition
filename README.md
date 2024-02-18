@@ -27,7 +27,8 @@ Challenges Faced:
 - Understanding what we copied
 - Sampath Mini
 
-
+Detailed explaination about the project:
+---
 For more details, [text this guy](https://gemini.google.com/app)
 
 ---
