@@ -1,6 +1,6 @@
 ## Face detection + Emotion Recognition 
 # Guided by Dr.Anisha P Rodrigues
-*Teacher of our choice weren't there and Ganesh Pai doesn't like ML😥*  
+*Teachers of our choice weren't available and Ganesh Pai doesn't like ML😥*  
 
 Some things about the model  
 ---
