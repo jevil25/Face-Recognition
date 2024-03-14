@@ -106,7 +106,6 @@ def load_model(model_source):
             open("./output/model_ck_fer.json", "r").read(),
             custom_objects={"Sequential": Sequential},
         )
-        model.build((None, None, 48, 48, 1))
         # load weights
         model.load_weights("./output/model_ck_fer.h5")
     else:
@@ -125,7 +124,7 @@ def main():
     st.write("Upload an image or use your webcam to detect emotions.")
 
     # Choose the model
-    model_source = st.radio("Select model:", ("Bi-lstm", "VGG-16"))
+    model_source = st.radio("Select model:", ("VGG-16", "Bi-lstm"))
     # Choose the input source
     input_source = st.radio("Select input source:", ("Upload Image", "Webcam"))
 
