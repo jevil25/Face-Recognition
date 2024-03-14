@@ -14,21 +14,13 @@ class Sequential(tf.keras.Sequential):
     pass
 
 
-# load model
-model = model_from_json(
-    open("./output/model_ck_fer.json", "r").read(),
-    custom_objects={"Sequential": Sequential},
-)
-# load weights
-model.load_weights("./output/model_ck_fer.h5")
-
 cascade_path = "./output/haarcascade_frontalface_default.xml"
 face_haar_cascade = cv2.CascadeClassifier(cascade_path)
 
 face = st.empty()
 
 
-def get_emotion(gray_img, model_source, uploaded_image):
+def get_emotion(gray_img, model_source, uploaded_image, model):
     faces_detected = face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
 
     for x, y, w, h in faces_detected:
@@ -62,17 +54,7 @@ def get_emotion(gray_img, model_source, uploaded_image):
         return predicted_emotion, x, y
 
 
-def real_time_detection(model_source):
-    if model_source == "Bi-lstm":
-        # load model
-        model = model_from_json(open("./output/model_ck_fer.json", "r").read())
-        # load weights
-        model.load_weights("./output/model_ck_fer.h5")
-    else:
-        # load model
-        model = model_from_json(open("./output/model375.json", "r").read())
-        # load weights
-        model.load_weights("./output/model375.h5")
+def real_time_detection(model_source, model):
     cap = cv2.VideoCapture(0)
 
     while True:
@@ -84,7 +66,7 @@ def real_time_detection(model_source):
         gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
         try:
             predicted_emotion, x, y = get_emotion(
-                gray_img, model_source, uploaded_image=test_img
+                gray_img, model_source, uploaded_image=test_img, model=model
             )
         except:
             predicted_emotion = "try again"
@@ -110,9 +92,11 @@ def real_time_detection(model_source):
     cv2.destroyAllWindows
 
 
-def get_image_emotion(uploaded_image, model_source):
+def get_image_emotion(uploaded_image, model_source, model):
     gray_img = cv2.cvtColor(uploaded_image, cv2.COLOR_BGR2GRAY)
-    return get_emotion(gray_img, model_source, uploaded_image=uploaded_image)[0]
+    return get_emotion(
+        gray_img, model_source, uploaded_image=uploaded_image, model=model
+    )[0]
 
 
 # Streamlit app
@@ -121,11 +105,21 @@ def main():
     st.write("Upload an image or use your webcam to detect emotions.")
 
     # Choose the model
-    model_source = st.radio("Select model:", ("Bi-lstm", "CNN"))
+    model_source = st.radio("Select model:", ("Bi-lstm", "VGG-16"))
     # Choose the input source
     input_source = st.radio("Select input source:", ("Upload Image", "Webcam"))
 
     if input_source == "Upload Image":
+        if model_source == "Bi-lstm":
+            # load model
+            model = model_from_json(open("./output/model_ck_fer.json", "r").read())
+            # load weights
+            model.load_weights("./output/model_ck_fer.h5")
+        else:
+            # load model
+            model = model_from_json(open("./output/model375.json", "r").read())
+            # load weights
+            model.load_weights("./output/model375.h5")
         # Upload image
         uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
         if uploaded_file is not None:
@@ -134,7 +128,9 @@ def main():
             # Display the image
             st.image(image, caption="Uploaded Image", use_column_width=True)
             # Predict the emotion
-            predicted_emotion = get_image_emotion(np.array(image), model_source)
+            predicted_emotion = get_image_emotion(
+                np.array(image), model_source, model=model
+            )
             # Display the predicted emotion
             st.write("Predicted Emotion:", predicted_emotion)
 
@@ -149,7 +145,7 @@ def main():
             model = model_from_json(open("./output/model375.json", "r").read())
             # load weights
             model.load_weights("./output/model375.h5")
-        real_time_detection(model_source)
+        real_time_detection(model_source, model=model)
 
 
 if __name__ == "__main__":
