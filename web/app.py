@@ -1,51 +1,120 @@
+import io
 import cv2
 import streamlit as st
 from PIL import Image
 import numpy as np
-import tensorflow as tf
-import time
 from keras.models import model_from_json
+from keras.preprocessing import image
 
-#load model
-model = model_from_json(open("./output/model.json", "r").read())
-#load weights
-model.load_weights('./output/model.h5')
+# load model
+model = model_from_json(open("./output/model_ck_fer.json", "r").read())
+# load weights
+model.load_weights("./output/model_ck_fer.h5")
 
-#load cascade
 cascade_path = "./output/haarcascade_frontalface_default.xml"
 face_haar_cascade = cv2.CascadeClassifier(cascade_path)
 
-# Define the emotion labels
-emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
+face = st.empty()
 
-# Function to preprocess the image
-def preprocess_image(image):
-    # Convert the image to grayscale
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # Resize the image to match the input size of the model
-    resized = cv2.resize(gray, (48, 48))
-    # Normalize the image
-    normalized = resized / 255.0
-    # Reshape the image to match the input shape of the model
-    reshaped = np.reshape(normalized, (1, 48, 48, 1))
-    return reshaped
 
-# Function to predict the emotion
-def predict_emotion(image):
-    preprocessed_image = preprocess_image(image)
-    # Make the prediction using the pre-trained model
-    predictions = model.predict(preprocessed_image)
-    # Get the index of the predicted emotion
-    predicted_index = np.argmax(predictions)
-    # Get the predicted emotion label
-    predicted_emotion = emotion_labels[predicted_index]
-    return predicted_emotion
+def get_emotion(gray_img, model_source, uploaded_image):
+    if model_source == "Bi-lstm":
+        # load model
+        model = model_from_json(open("./output/model_ck_fer.json", "r").read())
+        # load weights
+        model.load_weights("./output/model_ck_fer.h5")
+    else:
+        # load model
+        model = model_from_json(open("./output/model.json", "r").read())
+        # load weights
+        model.load_weights("./output/model.h5")
+
+    faces_detected = face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
+
+    for x, y, w, h in faces_detected:
+        cv2.rectangle(uploaded_image, (x, y), (x + w, y + h), (255, 0, 0), thickness=7)
+        roi_gray = gray_img[
+            y : y + w, x : x + h
+        ]  # cropping region of interest i.e. face area from  image
+        roi_gray = cv2.resize(roi_gray, (48, 48))
+        img_pixels = image.img_to_array(roi_gray)
+        if model_source == "Bi-lstm":
+            img_pixels = img_pixels.reshape(
+                1, 48, 48, 1
+            )  # needed for bi lstm as input shape while training was (1,48,48,1)
+        img_pixels = np.expand_dims(img_pixels, axis=0)
+        img_pixels /= 255
+
+        predictions = model.predict(img_pixels)
+
+        # find max indexed array
+        max_index = np.argmax(predictions[0])
+        emotions = [
+            "angry",
+            "disgust",
+            "fear",
+            "happy",
+            "sad",
+            "surprise",
+            "neutral",
+        ]
+        label_emotion_mapper = {
+            0: "surprise",
+            1: "happy",
+            2: "anger",
+            3: "sad",
+            4: "fear",
+        }
+        # emotions = [label_emotion_mapper[i] for i in range(5)]
+        predicted_emotion = emotions[max_index]
+        return predicted_emotion, x, y
+
+
+def real_time_detection(model_source):
+    cap = cv2.VideoCapture(0)
+
+    while True:
+        ret, test_img = (
+            cap.read()
+        )  # captures frame and returns boolean value and captured image
+        if not ret:
+            continue
+        gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
+        predicted_emotion, x, y = get_emotion(
+            gray_img, model_source, uploaded_image=test_img
+        )
+        cv2.putText(
+            test_img,
+            predicted_emotion,
+            (int(x), int(y)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 0, 255),
+            2,
+        )
+
+        resized_img = cv2.resize(test_img, (1000, 700))
+        cv2.imshow("Face Emotion Recognition", resized_img)
+
+        if cv2.waitKey(10) == ord("q"):  # wait until 'q' key is pressed
+            break
+
+    cap.release()
+    cv2.destroyAllWindows
+
+
+def get_image_emotion(uploaded_image, model_source):
+    gray_img = cv2.cvtColor(uploaded_image, cv2.COLOR_BGR2GRAY)
+    return get_emotion(gray_img, model_source, uploaded_image=uploaded_image)[0]
+
 
 # Streamlit app
 def main():
     st.title("Real-time Emotion Recognition")
     st.write("Upload an image or use your webcam to detect emotions.")
 
+    # Choose the model
+    model_source = st.radio("Select model:", ("Bi-lstm", "CNN"))
     # Choose the input source
     input_source = st.radio("Select input source:", ("Upload Image", "Webcam"))
 
@@ -57,44 +126,14 @@ def main():
             image = Image.open(uploaded_file)
             # Display the image
             st.image(image, caption="Uploaded Image", use_column_width=True)
-            # Convert the image to numpy array
-            image_array = np.array(image)
             # Predict the emotion
-            predicted_emotion = predict_emotion(image_array)
+            predicted_emotion = get_image_emotion(np.array(image), model_source)
             # Display the predicted emotion
             st.write("Predicted Emotion:", predicted_emotion)
 
     elif input_source == "Webcam":
-        # Open the webcam
-        cap = cv2.VideoCapture(0)
-        st.text("Please note emotion is predicted every 3 seconds.")
-        # Create a placeholder for the image
-        image_placeholder = st.empty()
-        # Create a placeholder for the text
-        text_placeholder = st.empty()
-        # Read and display frames from the webcam
-        counter = 0
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                continue
-            # Update the image in the placeholder
-            image_placeholder.image(frame, channels="BGR", use_column_width=True)
-            # Convert the frame to numpy array
-            frame_array = np.array(frame)
-            
-            # Predict the emotion every 3 seconds
-            if counter % 30 == 0:
-                # Predict the emotion
-                predicted_emotion = predict_emotion(frame_array)
-                # Update the text in the placeholder
-                text_placeholder.text("Predicted Emotion: " + predicted_emotion)
+        real_time_detection(model_source)
 
-            counter += 1
-            time.sleep(0.1)
 
-        # Release the webcam
-        cap.release()
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
