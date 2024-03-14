@@ -106,6 +106,7 @@ def load_model(model_source):
             open("./output/model_ck_fer.json", "r").read(),
             custom_objects={"Sequential": Sequential},
         )
+        model.build((None, None, 48, 48, 1))
         # load weights
         model.load_weights("./output/model_ck_fer.h5")
     else:
