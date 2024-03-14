@@ -1,10 +1,12 @@
+import time
 import cv2
 import streamlit as st
 from PIL import Image
 import numpy as np
 from keras.models import model_from_json
 from keras.preprocessing import image
-from tensorflow.keras.saving import register_keras_serializable
+from keras.saving import register_keras_serializable
+import tensorflow as tf
 
 
 @register_keras_serializable()
@@ -27,17 +29,6 @@ face = st.empty()
 
 
 def get_emotion(gray_img, model_source, uploaded_image):
-    if model_source == "Bi-lstm":
-        # load model
-        model = model_from_json(open("./output/model_ck_fer.json", "r").read())
-        # load weights
-        model.load_weights("./output/model_ck_fer.h5")
-    else:
-        # load model
-        model = model_from_json(open("./output/model375.json", "r").read())
-        # load weights
-        model.load_weights("./output/model375.h5")
-
     faces_detected = face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
 
     for x, y, w, h in faces_detected:
@@ -67,14 +58,6 @@ def get_emotion(gray_img, model_source, uploaded_image):
             "surprise",
             "neutral",
         ]
-        label_emotion_mapper = {
-            0: "surprise",
-            1: "happy",
-            2: "anger",
-            3: "sad",
-            4: "fear",
-        }
-        # emotions = [label_emotion_mapper[i] for i in range(5)]
         predicted_emotion = emotions[max_index]
         return predicted_emotion, x, y
 
@@ -99,9 +82,14 @@ def real_time_detection(model_source):
         if not ret:
             continue
         gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
-        predicted_emotion, x, y = get_emotion(
-            gray_img, model_source, uploaded_image=test_img
-        )
+        try:
+            predicted_emotion, x, y = get_emotion(
+                gray_img, model_source, uploaded_image=test_img
+            )
+        except:
+            predicted_emotion = "try again"
+            x = 0
+            y = 0
         cv2.putText(
             test_img,
             predicted_emotion,
@@ -151,6 +139,16 @@ def main():
             st.write("Predicted Emotion:", predicted_emotion)
 
     elif input_source == "Webcam":
+        if model_source == "Bi-lstm":
+            # load model
+            model = model_from_json(open("./output/model_ck_fer.json", "r").read())
+            # load weights
+            model.load_weights("./output/model_ck_fer.h5")
+        else:
+            # load model
+            model = model_from_json(open("./output/model375.json", "r").read())
+            # load weights
+            model.load_weights("./output/model375.h5")
         real_time_detection(model_source)
 
 
