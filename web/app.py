@@ -1,13 +1,22 @@
-import io
 import cv2
 import streamlit as st
 from PIL import Image
 import numpy as np
 from keras.models import model_from_json
 from keras.preprocessing import image
+from tensorflow.keras.saving import register_keras_serializable
+
+
+@register_keras_serializable()
+class Sequential(tf.keras.Sequential):
+    pass
+
 
 # load model
-model = model_from_json(open("./output/model_ck_fer.json", "r").read())
+model = model_from_json(
+    open("./output/model_ck_fer.json", "r").read(),
+    custom_objects={"Sequential": Sequential},
+)
 # load weights
 model.load_weights("./output/model_ck_fer.h5")
 
@@ -25,9 +34,9 @@ def get_emotion(gray_img, model_source, uploaded_image):
         model.load_weights("./output/model_ck_fer.h5")
     else:
         # load model
-        model = model_from_json(open("./output/model.json", "r").read())
+        model = model_from_json(open("./output/model375.json", "r").read())
         # load weights
-        model.load_weights("./output/model.h5")
+        model.load_weights("./output/model375.h5")
 
     faces_detected = face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
 
@@ -71,6 +80,16 @@ def get_emotion(gray_img, model_source, uploaded_image):
 
 
 def real_time_detection(model_source):
+    if model_source == "Bi-lstm":
+        # load model
+        model = model_from_json(open("./output/model_ck_fer.json", "r").read())
+        # load weights
+        model.load_weights("./output/model_ck_fer.h5")
+    else:
+        # load model
+        model = model_from_json(open("./output/model375.json", "r").read())
+        # load weights
+        model.load_weights("./output/model375.h5")
     cap = cv2.VideoCapture(0)
 
     while True:
