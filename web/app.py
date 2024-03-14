@@ -99,6 +99,25 @@ def get_image_emotion(uploaded_image, model_source, model):
     )[0]
 
 
+def load_model(model_source):
+    if model_source == "Bi-lstm":
+        # load model
+        model = model_from_json(
+            open("./output/model_ck_fer.json", "r").read(),
+            custom_objects={"Sequential": Sequential},
+        )
+        # load weights
+        model.load_weights("./output/model_ck_fer.h5")
+    else:
+        # load model
+        model = model_from_json(
+            open("./output/model375.json", "r").read(),
+            custom_objects={"Sequential": Sequential},
+        )
+        # load weights
+        model.load_weights("./output/model375.h5")
+
+
 # Streamlit app
 def main():
     st.title("Real-time Emotion Recognition")
@@ -110,16 +129,7 @@ def main():
     input_source = st.radio("Select input source:", ("Upload Image", "Webcam"))
 
     if input_source == "Upload Image":
-        if model_source == "Bi-lstm":
-            # load model
-            model = model_from_json(open("./output/model_ck_fer.json", "r").read())
-            # load weights
-            model.load_weights("./output/model_ck_fer.h5")
-        else:
-            # load model
-            model = model_from_json(open("./output/model375.json", "r").read())
-            # load weights
-            model.load_weights("./output/model375.h5")
+        model = load_model(model_source)
         # Upload image
         uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
         if uploaded_file is not None:
@@ -135,16 +145,7 @@ def main():
             st.write("Predicted Emotion:", predicted_emotion)
 
     elif input_source == "Webcam":
-        if model_source == "Bi-lstm":
-            # load model
-            model = model_from_json(open("./output/model_ck_fer.json", "r").read())
-            # load weights
-            model.load_weights("./output/model_ck_fer.h5")
-        else:
-            # load model
-            model = model_from_json(open("./output/model375.json", "r").read())
-            # load weights
-            model.load_weights("./output/model375.h5")
+        model = load_model(model_source)
         real_time_detection(model_source, model=model)
 
 
