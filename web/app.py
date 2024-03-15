@@ -114,6 +114,7 @@ def load_model_function(model_source):
         )
         # load weights
         model.load_weights("./output/model375.h5")
+    return model
 
 
 # Streamlit app
