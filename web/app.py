@@ -123,13 +123,32 @@ def load_model_function(model_source):
 
 # Streamlit app
 def main():
-    st.title("Real-time Emotion Recognition")
-    st.write("Upload an image or use your webcam to detect emotions.")
+    st.title("Face Detection and Emotion Recognition")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.image(
+            "./public/faceImage.jpg",
+        )
+    with col2:
+        st.info(
+            "The models are trained using different image datasets. Using tensorflow and keras. Using kagglea and google colab."
+            "We used Sequential model from keras to build the model. We used the VGG-16 model and Bi-lstm model."
+        )
 
-    # Choose the model
-    model_source = st.radio("Select model:", ("VGG-16", "Bi-lstm"))
-    # Choose the input source
-    input_source = st.radio("Select input source:", ("Upload Image", "Webcam"))
+        st.info(
+            "The VGG-16 model is trained on the FER-2013 dataset and has an accuracy of 62.7%. "
+            "The Bi-lstm model is trained on the CK+ dataset and fer-2013 dataset and has an accuracy of 68%."
+        )
+
+    st.write("""## Upload an image or use your webcam to detect emotions.""")
+    st.write("""#### Choose the model and input source.""")
+    col11, col12 = st.columns(2)
+    with col11:
+        # Choose the model
+        model_source = st.radio("Select model:", ("VGG-16", "Bi-lstm"))
+    with col12:
+        # Choose the input source
+        input_source = st.radio("Select input source:", ("Upload Image", "Webcam"))
 
     if input_source == "Upload Image":
         model = load_model_function(model_source)
@@ -145,7 +164,7 @@ def main():
                 np.array(image), model_source, model=model
             )
             # Display the predicted emotion
-            st.write("Predicted Emotion:", predicted_emotion)
+            st.write(f"""## Predicted Emotion: {predicted_emotion}""")
 
     elif input_source == "Webcam":
         if isProd:
@@ -155,6 +174,11 @@ def main():
         else:
             model = load_model_function(model_source)
             real_time_detection(model_source, model=model)
+
+    # footer
+    link_text = "Made with ❤️ by Aaron Jevil Nazareth, Aaron Francis Douza, Akshatha SM, and Adril Vas (not copied from github, we swear!)"
+    link = f'<div style="display: block; text-align: center; padding: 10px; border: 2px solid #172c43; background-color:#172c43; border-radius:5px;">{link_text}</div>'
+    st.write(link, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
