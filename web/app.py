@@ -19,6 +19,10 @@ face_haar_cascade = cv2.CascadeClassifier(cascade_path)
 
 face = st.empty()
 
+isProd = st.secrets[
+    "isProd"
+]  # True if in production, False if in development soo that we can disable real-time detection in production
+
 
 def get_emotion(gray_img, model_source, uploaded_image, model):
     faces_detected = face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
@@ -144,8 +148,13 @@ def main():
             st.write("Predicted Emotion:", predicted_emotion)
 
     elif input_source == "Webcam":
-        model = load_model_function(model_source)
-        real_time_detection(model_source, model=model)
+        if isProd:
+            st.warning(
+                "Real-time detection is disabled in production. Due to WebRTC requirement, it only works in development."
+            )
+        else:
+            model = load_model_function(model_source)
+            real_time_detection(model_source, model=model)
 
 
 if __name__ == "__main__":
