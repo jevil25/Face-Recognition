@@ -5,7 +5,6 @@ from PIL import Image
 import numpy as np
 from keras.models import model_from_json
 from keras.preprocessing import image
-import tensorflow as tf
 
 
 cascade_path = "./output/haarcascade_frontalface_default.xml"
@@ -48,6 +47,7 @@ def get_emotion(gray_img, model_source, uploaded_image, model):
         ]
         predicted_emotion = emotions[max_index]
         return predicted_emotion, x, y
+    return "No face detected", 0, 0
 
 
 def real_time_detection(model_source, model):
@@ -155,6 +155,8 @@ def main():
             predicted_emotion = get_image_emotion(
                 np.array(image), model_source, model=model
             )
+            if predicted_emotion == "No face detected":
+                st.warning("No face detected in the image.")
             # Display the predicted emotion
             st.write(f"""## Predicted Emotion: {predicted_emotion}""")
 
