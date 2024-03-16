@@ -3,21 +3,13 @@ import cv2
 import streamlit as st
 from PIL import Image
 import numpy as np
-from keras.models import model_from_json, load_model
+from keras.models import model_from_json
 from keras.preprocessing import image
-from keras.saving import register_keras_serializable
 import tensorflow as tf
-
-
-@register_keras_serializable()
-class Sequential(tf.keras.Sequential):
-    pass
 
 
 cascade_path = "./output/haarcascade_frontalface_default.xml"
 face_haar_cascade = cv2.CascadeClassifier(cascade_path)
-
-face = st.empty()
 
 isProd = st.secrets[
     "isProd"
@@ -131,7 +123,7 @@ def main():
         )
     with col2:
         st.info(
-            "The models are trained using different image datasets. Using tensorflow and keras. Using kagglea and google colab."
+            "The models are trained using different image datasets. Using tensorflow and keras. Using kaggle and google colab."
             "We used Sequential model from keras to build the model. We used the VGG-16 model and Bi-lstm model."
         )
 
@@ -169,14 +161,14 @@ def main():
     elif input_source == "Webcam":
         if isProd:
             st.warning(
-                "Real-time detection is disabled in production. Due to WebRTC requirement, it only works in development."
+                "Real-time detection is disabled in production. Due to WebRTC requirement, it only works in development/local enviroment."
             )
         else:
             model = load_model_function(model_source)
             real_time_detection(model_source, model=model)
 
     # footer
-    link_text = "Made with ❤️ by Aaron Jevil Nazareth, Aaron Francis Douza, Akshatha SM, and Adril Vas (not copied from github, we swear!)"
+    link_text = "Made with ❤️ by Aaron Jevil Nazareth, Aaron Francis Dsouza, Akshatha SM, and Adril Vaz"
     link = f'<div style="display: block; text-align: center; padding: 10px; border: 2px solid #172c43; background-color:#172c43; border-radius:5px;">{link_text}</div>'
     st.write(link, unsafe_allow_html=True)
 
