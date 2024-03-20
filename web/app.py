@@ -132,12 +132,34 @@ def main():
             "The Bi-lstm model is trained on the CK+ dataset and fer-2013 dataset and has an accuracy of 68%."
         )
 
+    st.write("""## Model Accuracy and Loss""")
+
+    accuracy_and_loss_image = st.radio(
+        label="",
+        options=("hide", "VGG-16", "Bi-lstm", "Both"),
+        horizontal=True,
+    )
+
+    if accuracy_and_loss_image == "VGG-16" or accuracy_and_loss_image == "Both":
+        st.image(
+            "./public/epoch_history_vgg-16.png",
+        )
+        st.write("#### Accuracy: 78%  Loss: 0.6")
+    if accuracy_and_loss_image == "Bi-lstm" or accuracy_and_loss_image == "Both":
+        st.image(
+            "./public/epoch_history_bilstm_final.png",
+        )
+        st.write("#### Accuracy: 86%  Loss: 0.3")
+        st.write("#### Validation Accuracy: 83%  Validation Loss: 0.5")
+
     st.write("""## Upload an image or use your webcam to detect emotions.""")
     st.write("""#### Choose the model and input source.""")
     col11, col12 = st.columns(2)
     with col11:
         # Choose the model
-        model_source = st.radio("Select model:", ("VGG-16", "Bi-lstm"))
+        model_source = st.radio(
+            "Select model:", ("VGG-16(Accuracy: 62.7%)", "Bi-lstm(Accuracy: 68%)")
+        )
     with col12:
         # Choose the input source
         input_source = st.radio("Select input source:", ("Upload Image", "Webcam"))
