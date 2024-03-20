@@ -132,10 +132,10 @@ def main():
             "The Bi-lstm model is trained on the CK+ dataset and fer-2013 dataset and has an accuracy of 68%."
         )
 
-    st.write("""## Model Accuracy and Loss""")
+    st.write("""### Model Accuracy and Loss""")
 
     accuracy_and_loss_image = st.radio(
-        label="",
+        label="Select model:",
         options=("hide", "VGG-16", "Bi-lstm", "Both"),
         horizontal=True,
     )
