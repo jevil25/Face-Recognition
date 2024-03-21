@@ -25,7 +25,7 @@ def get_emotion(gray_img, model_source, uploaded_image, model):
         ]  # cropping region of interest i.e. face area from  image
         roi_gray = cv2.resize(roi_gray, (48, 48))
         img_pixels = image.img_to_array(roi_gray)
-        if model_source == "Bi-lstm":
+        if model_source == "Bi-lstm(Accuracy: 68%)":
             img_pixels = img_pixels.reshape(
                 1, 48, 48, 1
             )  # needed for bi lstm as input shape while training was (1,48,48,1)
@@ -96,7 +96,7 @@ def get_image_emotion(uploaded_image, model_source, model):
 
 
 def load_model_function(model_source):
-    if model_source == "Bi-lstm":
+    if model_source == "Bi-lstm(Accuracy: 68%)":
         # load model
         model = model_from_json(
             open("./output/model_ck_fer.json", "r").read(),
