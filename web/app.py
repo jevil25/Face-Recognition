@@ -15,11 +15,23 @@ isProd = st.secrets[
 ]  # True if in production, False if in development soo that we can disable real-time detection in production
 
 
+def wait_seconds(start_time):
+    if start_time is None:
+        start_time = time.time()
+        return True, start_time
+    current_time = time.time()
+    elapsed_time = current_time - start_time
+    if elapsed_time >= 1:
+        start_time = time.time()
+        return True, start_time
+    else:
+        return False, start_time
+
+
 def get_emotion(gray_img, model_source, uploaded_image, model):
     faces_detected = face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
 
     for x, y, w, h in faces_detected:
-        cv2.rectangle(uploaded_image, (x, y), (x + w, y + h), (255, 0, 0), thickness=7)
         roi_gray = gray_img[
             y : y + w, x : x + h
         ]  # cropping region of interest i.e. face area from  image
@@ -46,12 +58,13 @@ def get_emotion(gray_img, model_source, uploaded_image, model):
             "neutral",
         ]
         predicted_emotion = emotions[max_index]
-        return predicted_emotion, x, y
-    return "No face detected", 0, 0
+        return predicted_emotion, x, y, w, h
+    return "No face detected", 0, 0, 0, 0
 
 
-def real_time_detection(model_source, model):
+def real_time_detection(model_source, model, FRAME_WINDOW):
     cap = cv2.VideoCapture(0)
+    start_time = None
 
     while True:
         ret, test_img = (
@@ -61,13 +74,16 @@ def real_time_detection(model_source, model):
             continue
         gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
         try:
-            predicted_emotion, x, y = get_emotion(
-                gray_img, model_source, uploaded_image=test_img, model=model
-            )
+            predict, start_time = wait_seconds(start_time)
+            if predict:
+                predicted_emotion, x, y, w, h = get_emotion(
+                    gray_img, model_source, uploaded_image=test_img, model=model
+                )
         except:
             predicted_emotion = "try again"
-            x = 0
-            y = 0
+            x = 20
+            y = 20
+        cv2.rectangle(test_img, (x, y), (x + w, y + h), (255, 0, 0), thickness=7)
         cv2.putText(
             test_img,
             predicted_emotion,
@@ -78,8 +94,10 @@ def real_time_detection(model_source, model):
             2,
         )
 
-        resized_img = cv2.resize(test_img, (1000, 700))
-        cv2.imshow("Face Emotion Recognition", resized_img)
+        # resized_img = cv2.resize(test_img, (1000, 700))
+        frame = cv2.cvtColor(test_img, cv2.COLOR_BGR2RGB)  # used for streamlit image
+        # cv2.imshow("Face Emotion Recognition", resized_img)
+        FRAME_WINDOW.image(frame)
 
         if cv2.waitKey(10) == ord("q"):  # wait until 'q' key is pressed
             break
@@ -183,13 +201,14 @@ def main():
             st.write(f"""## Predicted Emotion: {predicted_emotion}""")
 
     elif input_source == "Webcam":
+        FRAME_WINDOW = st.image([])
         if isProd:
             st.warning(
                 "Real-time detection is disabled in production. Due to WebRTC requirement, it only works in development/local enviroment."
             )
         else:
             model = load_model_function(model_source)
-            real_time_detection(model_source, model=model)
+            real_time_detection(model_source, model=model, FRAME_WINDOW=FRAME_WINDOW)
 
     # footer
     link_text = "Made with ❤️ by Aaron Jevil Nazareth, Aaron Francis Dsouza, Akshatha SM, and Adril Vaz"
